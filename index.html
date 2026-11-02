@@ -2,321 +2,647 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>NS2JB WebKit Research Harness</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#111111">
+<title>NS2JB WebKit Research</title>
 
-  <style>
-    :root {
-      color-scheme: dark;
-      font-family: system-ui, sans-serif;
-      background: #111318;
-      color: #e8eaf0;
-    }
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #101010;
+  --panel: #191919;
+  --panel2: #222;
+  --orange: #ff8c32;
+  --text: #f4f4f4;
+  --muted: #999;
+  --green: #65d995;
+  --red: #ff7777;
+  --border: #333;
+}
 
-    * {
-      box-sizing: border-box;
-    }
+* { box-sizing: border-box; }
 
-    body {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 24px;
-    }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, sans-serif;
+}
 
-    header {
-      border-bottom: 1px solid #383d49;
-      padding-bottom: 18px;
-      margin-bottom: 24px;
-    }
+header {
+  padding: 24px;
+  border-bottom: 1px solid var(--border);
+  background: #151515;
+}
 
-    h1 {
-      font-size: 26px;
-      margin-bottom: 6px;
-    }
+.brand {
+  color: var(--orange);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 3px;
+}
 
-    h2 {
-      font-size: 18px;
-      margin-top: 28px;
-    }
+h1 {
+  margin: 8px 0;
+  font-size: 28px;
+}
 
-    .subtitle {
-      color: #a3a9b7;
-      font-size: 14px;
-    }
+.subtitle, .muted {
+  color: var(--muted);
+  font-size: 13px;
+}
 
-    .panel {
-      background: #1b1f28;
-      border: 1px solid #383d49;
-      border-radius: 10px;
-      padding: 16px;
-      margin: 14px 0;
-    }
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 24px;
+  background: #151515;
+  border-bottom: 1px solid var(--border);
+}
 
-    .result {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      border-bottom: 1px solid #303541;
-      padding: 9px 0;
-      font-size: 14px;
-    }
+nav button, button {
+  background: var(--panel2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 650;
+}
 
-    .result:last-child {
-      border-bottom: none;
-    }
+nav button.active, button.primary {
+  background: var(--orange);
+  color: #171717;
+  border-color: var(--orange);
+}
 
-    .pass {
-      color: #66df9a;
-      font-weight: 700;
-    }
+button:hover { filter: brightness(1.15); }
 
-    .fail {
-      color: #ff7777;
-      font-weight: 700;
-    }
+main {
+  max-width: 1050px;
+  margin: auto;
+  padding: 24px;
+}
 
-    .info {
-      color: #a3a9b7;
-      overflow-wrap: anywhere;
-      font-size: 13px;
-    }
+.page { display: none; }
+.page.active { display: block; }
 
-    button {
-      background: #f28b30;
-      color: #171717;
-      border: none;
-      padding: 11px 16px;
-      border-radius: 7px;
-      font-weight: 700;
-      cursor: pointer;
-      margin-top: 12px;
-    }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
 
-    button:hover {
-      background: #ffa34f;
-    }
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 17px;
+  margin-bottom: 15px;
+}
 
-    #status {
-      color: #a3a9b7;
-      font-size: 13px;
-    }
+.card h2 {
+  font-size: 17px;
+  margin: 0 0 14px;
+}
 
-    footer {
-      margin-top: 32px;
-      padding-top: 14px;
-      border-top: 1px solid #383d49;
-      color: #858c9b;
-      font-size: 12px;
-    }
-  </style>
+.metric {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--orange);
+}
+
+.metric-label {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.result {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.result:last-child { border-bottom: 0; }
+
+.pass { color: var(--green); font-weight: 750; }
+.fail { color: var(--red); font-weight: 750; }
+.warn { color: var(--orange); font-weight: 750; }
+
+input {
+  width: 100%;
+  background: #101010;
+  color: white;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  margin: 8px 0;
+}
+
+pre {
+  overflow-x: auto;
+  white-space: pre-wrap;
+  background: #101010;
+  padding: 13px;
+  border-radius: 7px;
+  color: #ddd;
+  font-size: 12px;
+}
+
+.stage {
+  border-left: 3px solid var(--orange);
+  padding: 12px 15px;
+  margin: 12px 0;
+  background: #202020;
+  border-radius: 0 7px 7px 0;
+}
+
+.stage strong { color: var(--orange); }
+
+footer {
+  border-top: 1px solid var(--border);
+  padding: 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+@media(max-width:600px) {
+  main { padding: 14px; }
+  header { padding: 18px; }
+  h1 { font-size: 23px; }
+}
+</style>
 </head>
 
 <body>
 
 <header>
-  <h1>NS2JB WebKit Research Harness</h1>
+  <div class="brand">NS2JB / RESEARCH PROJECT</div>
+  <h1>WebKit Research Harness</h1>
   <div class="subtitle">
     Nintendo Switch 2 browser compatibility research
   </div>
-  <p id="status">Initializing diagnostics...</p>
+  <p class="muted" id="last-run">Diagnostics not yet run</p>
 </header>
 
-<section class="panel">
-  <h2>Browser information</h2>
-  <div id="browser-results"></div>
+<nav>
+  <button class="active" data-page="dashboard">Dashboard</button>
+  <button data-page="browser">Browser</button>
+  <button data-page="binary">Binary tests</button>
+  <button data-page="network">Network</button>
+  <button data-page="architecture">Architecture</button>
+</nav>
+
+<main>
+
+<section class="page active" id="dashboard">
+  <div class="grid">
+    <div class="card">
+      <div class="metric" id="api-count">0</div>
+      <div class="metric-label">Available browser APIs</div>
+    </div>
+    <div class="card">
+      <div class="metric" id="binary-count">0/0</div>
+      <div class="metric-label">Binary tests passed</div>
+    </div>
+    <div class="card">
+      <div class="metric" id="engine">Unknown</div>
+      <div class="metric-label">Detected browser engine</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>System overview</h2>
+    <div id="overview"></div>
+  </div>
+
+  <div class="card">
+    <h2>Quick actions</h2>
+    <button class="primary" id="run-all">Run all diagnostics</button>
+    <button id="export-report">Export JSON report</button>
+    <p class="muted">
+      Tests run locally in the browser. No console memory or native
+      system interfaces are accessed.
+    </p>
+  </div>
 </section>
 
-<section class="panel">
-  <h2>Web API compatibility</h2>
-  <div id="compat-results"></div>
+<section class="page" id="browser">
+  <div class="card">
+    <h2>Browser identification</h2>
+    <div id="browser-info"></div>
+  </div>
+
+  <div class="card">
+    <h2>Web API compatibility</h2>
+    <div id="api-results"></div>
+  </div>
 </section>
 
-<section class="panel">
-  <h2>Binary serialization tests</h2>
-  <div id="protocol-results"></div>
+<section class="page" id="binary">
+  <div class="card">
+    <h2>Binary serialization diagnostics</h2>
+    <div id="binary-results"></div>
+    <button class="primary" id="run-binary">Run binary tests</button>
+  </div>
+
+  <div class="card">
+    <h2>Test explanation</h2>
+    <p class="muted">
+      These tests verify ordinary JavaScript typed arrays,
+      byte ordering, UTF-8 encoding and JSON serialization.
+      They do not access system memory.
+    </p>
+  </div>
 </section>
 
-<section class="panel">
-  <h2>Manual tests</h2>
-  <p class="info">
-    Run a basic browser-side JavaScript test.
-    This does not access console memory or native system services.
-  </p>
-  <button id="run-tests">Run tests again</button>
+<section class="page" id="network">
+  <div class="card">
+    <h2>WebSocket diagnostics</h2>
+    <p class="muted">
+      Enter the address of a WebSocket echo server that you control.
+      This test does not connect automatically.
+    </p>
+
+    <input id="ws-url"
+      placeholder="ws://localhost:8765"
+      autocomplete="off">
+
+    <button class="primary" id="ws-connect">Connect and test</button>
+    <button id="ws-close">Close connection</button>
+
+    <pre id="ws-output">WebSocket test idle.</pre>
+  </div>
+
+  <div class="card">
+    <h2>Fetch API</h2>
+    <div id="fetch-result" class="muted">
+      Fetch API availability is checked in browser diagnostics.
+    </div>
+  </div>
 </section>
+
+<section class="page" id="architecture">
+  <div class="card">
+    <h2>Original NS2JB architecture</h2>
+    <p class="muted">
+      High-level research notes describing the original project's
+      software components. This is not an executable exploit.
+    </p>
+
+    <div class="stage">
+      <strong>01 — Host application</strong>
+      <p>Original Node.js entry point and orchestration.</p>
+      <span class="muted">run.cjs</span>
+    </div>
+
+    <div class="stage">
+      <strong>02 — Connection layer</strong>
+      <p>Host-side TCP communication and connection handling.</p>
+      <span class="muted">engine/lib/connection.cjs</span>
+    </div>
+
+    <div class="stage">
+      <strong>03 — Shared protocol</strong>
+      <p>Message structures and communication abstractions.</p>
+      <span class="muted">engine/shared/</span>
+    </div>
+
+    <div class="stage">
+      <strong>04 — Switch-specific components</strong>
+      <p>Console-specific application and system integration.</p>
+      <span class="muted">engine/switch2/</span>
+    </div>
+
+    <div class="stage">
+      <strong>05 — Browser research port</strong>
+      <p>
+        Independent compatibility tests, browser diagnostics
+        and safe message-format experiments.
+      </p>
+      <span class="muted">This GitHub Pages project</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Platform limitations</h2>
+    <p class="muted">
+      GitHub Pages serves static files. It cannot run Node.js
+      modules, open arbitrary TCP sockets or provide native
+      console APIs. Browser WebSockets require a separate
+      WebSocket server.
+    </p>
+  </div>
+</section>
+
+</main>
 
 <footer>
-  NS2JB WebKit Research Harness — browser diagnostics only.
+  NS2JB WebKit Research · Browser diagnostics only
 </footer>
 
 <script>
 "use strict";
 
-function addResult(containerId, name, passed, detail = "") {
-  const container = document.getElementById(containerId);
+const report = {
+  generated: null,
+  browser: {},
+  apis: {},
+  binaryTests: {},
+  network: {}
+};
+
+function setResult(container, name, passed, detail = "") {
   const row = document.createElement("div");
   row.className = "result";
 
   const label = document.createElement("span");
   label.textContent = name;
 
-  const result = document.createElement("span");
-  result.className = passed ? "pass" : "fail";
-  result.textContent = passed ? "AVAILABLE" : "UNAVAILABLE";
+  const value = document.createElement("span");
+  value.className = passed ? "pass" : "fail";
+  value.textContent = passed ? "AVAILABLE" : "UNAVAILABLE";
 
-  row.append(label, result);
-
-  if (detail) {
-    row.title = detail;
-  }
-
+  row.append(label, value);
+  if (detail) row.title = detail;
   container.appendChild(row);
 }
 
-function addInfo(containerId, name, value) {
-  const container = document.getElementById(containerId);
-  const row = document.createElement("div");
-  row.className = "result";
-
-  const label = document.createElement("span");
-  label.textContent = name;
-
-  const valueElement = document.createElement("span");
-  valueElement.className = "info";
-  valueElement.textContent = String(value);
-
-  row.append(label, valueElement);
-  container.appendChild(row);
+function engineName(ua) {
+  if (/Firefox\//i.test(ua)) return "Gecko";
+  if (/Edg\//i.test(ua)) return "Blink";
+  if (/Chrome\//i.test(ua)) return "Blink";
+  if (/AppleWebKit/i.test(ua)) return "WebKit";
+  return "Unknown";
 }
 
-function runBrowserTests() {
-  const browser = document.getElementById("browser-results");
-  browser.replaceChildren();
+function browserTests() {
+  const ua = navigator.userAgent;
 
-  addInfo("browser-results", "User agent", navigator.userAgent);
-  addInfo("browser-results", "Platform", navigator.platform);
-  addInfo("browser-results", "Language", navigator.language);
-  addInfo("browser-results", "Screen", 
-    `${screen.width} × ${screen.height}`);
-  addInfo("browser-results", "Online", navigator.onLine);
-
-  document.getElementById("status").textContent =
-    "Diagnostics completed: " + new Date().toLocaleString();
-}
-
-function runCompatibilityTests() {
-  const container = document.getElementById("compat-results");
-  container.replaceChildren();
-
-  const tests = {
-    "Typed arrays": typeof Uint8Array !== "undefined",
-    "ArrayBuffer": typeof ArrayBuffer !== "undefined",
-    "DataView": typeof DataView !== "undefined",
-    "BigInt": typeof BigInt !== "undefined",
-    "TextEncoder": typeof TextEncoder !== "undefined",
-    "TextDecoder": typeof TextDecoder !== "undefined",
-    "WebAssembly": typeof WebAssembly !== "undefined",
-    "WebSocket": typeof WebSocket !== "undefined",
-    "Fetch API": typeof fetch !== "undefined",
-    "IndexedDB": typeof indexedDB !== "undefined",
-    "Local Storage": typeof localStorage !== "undefined",
-    "Service Workers": "serviceWorker" in navigator,
-    "Cache Storage": typeof caches !== "undefined",
-    "Web Crypto": !!(globalThis.crypto && crypto.subtle),
-    "FontFace API": typeof FontFace !== "undefined",
-    "CSS Font Loading": !!document.fonts
+  report.browser = {
+    userAgent: ua,
+    platform: navigator.platform,
+    language: navigator.language,
+    online: navigator.onLine,
+    screen: `${screen.width}x${screen.height}`,
+    secureContext: window.isSecureContext,
+    engine: engineName(ua)
   };
 
-  for (const [name, available] of Object.entries(tests)) {
-    addResult("compat-results", name, available);
+  document.getElementById("engine").textContent =
+    report.browser.engine;
+
+  const info = document.getElementById("browser-info");
+  const overview = document.getElementById("overview");
+
+  info.replaceChildren();
+  overview.replaceChildren();
+
+  for (const [key, value] of Object.entries(report.browser)) {
+    setResult(info, key, true, String(value));
+  }
+
+  const entries = [
+    ["User agent", ua],
+    ["Platform", navigator.platform],
+    ["Language", navigator.language],
+    ["Screen", report.browser.screen],
+    ["Online", navigator.onLine],
+    ["Secure context", window.isSecureContext]
+  ];
+
+  for (const [key, value] of entries) {
+    const row = document.createElement("div");
+    row.className = "result";
+    const a = document.createElement("span");
+    const b = document.createElement("span");
+    a.textContent = key;
+    b.textContent = String(value);
+    b.className = "muted";
+    row.append(a, b);
+    overview.appendChild(row);
   }
 }
 
-function runProtocolTests() {
-  const container = document.getElementById("protocol-results");
+function apiTests() {
+  const tests = {
+    TypedArrays: typeof Uint8Array !== "undefined",
+    ArrayBuffer: typeof ArrayBuffer !== "undefined",
+    DataView: typeof DataView !== "undefined",
+    BigInt: typeof BigInt !== "undefined",
+    TextEncoder: typeof TextEncoder !== "undefined",
+    TextDecoder: typeof TextDecoder !== "undefined",
+    WebAssembly: typeof WebAssembly !== "undefined",
+    WebSocket: typeof WebSocket !== "undefined",
+    Fetch: typeof fetch !== "undefined",
+    IndexedDB: typeof indexedDB !== "undefined",
+    LocalStorage: (() => {
+      try {
+        localStorage.setItem("__ns2_test", "1");
+        localStorage.removeItem("__ns2_test");
+        return true;
+      } catch {
+        return false;
+      }
+    })(),
+    ServiceWorkers: "serviceWorker" in navigator,
+    CacheStorage: typeof caches !== "undefined",
+    WebCrypto: !!(globalThis.crypto && crypto.subtle),
+    FontFace: typeof FontFace !== "undefined",
+    CSSFontLoading: !!document.fonts,
+    Promise: typeof Promise !== "undefined"
+  };
+
+  report.apis = tests;
+
+  const container = document.getElementById("api-results");
   container.replaceChildren();
 
-  function test(name, callback) {
+  for (const [name, passed] of Object.entries(tests)) {
+    setResult(container, name, passed);
+  }
+
+  document.getElementById("api-count").textContent =
+    Object.values(tests).filter(Boolean).length;
+}
+
+function binaryTests() {
+  const tests = {};
+
+  function check(name, callback) {
     try {
-      addResult("protocol-results", name, !!callback());
-    } catch (error) {
-      addResult("protocol-results", name, false, error.message);
+      tests[name] = !!callback();
+    } catch {
+      tests[name] = false;
     }
   }
 
-  test("ArrayBuffer creation", () => {
-    return new ArrayBuffer(16).byteLength === 16;
+  check("ArrayBuffer creation", () =>
+    new ArrayBuffer(16).byteLength === 16
+  );
+
+  check("Little-endian encoding", () => {
+    const b = new ArrayBuffer(4);
+    const v = new DataView(b);
+    v.setUint32(0, 0x12345678, true);
+    return v.getUint32(0, true) === 0x12345678;
   });
 
-  test("Little-endian encoding", () => {
-    const buffer = new ArrayBuffer(4);
-    const view = new DataView(buffer);
-
-    view.setUint32(0, 0x12345678, true);
-
-    return view.getUint32(0, true) === 0x12345678;
+  check("Typed array conversion", () => {
+    const b = new ArrayBuffer(4);
+    new DataView(b).setUint32(0, 0x12345678, true);
+    const a = new Uint8Array(b);
+    return a[0] === 0x78 && a.length === 4;
   });
 
-  test("Typed array conversion", () => {
-    const buffer = new ArrayBuffer(4);
-    const view = new DataView(buffer);
-
-    view.setUint32(0, 0x12345678, true);
-
-    const bytes = new Uint8Array(buffer);
-
-    return bytes.length === 4 && bytes[0] === 0x78;
+  check("JSON round trip", () => {
+    const original = {type: "test", value: 123};
+    const decoded = JSON.parse(JSON.stringify(original));
+    return decoded.type === "test" && decoded.value === 123;
   });
 
-  test("JSON round trip", () => {
-    const message = {
-      type: "diagnostic",
-      version: 1,
-      message: "hello"
-    };
-
-    const decoded = JSON.parse(JSON.stringify(message));
-
-    return decoded.message === "hello" &&
-      decoded.version === 1;
-  });
-
-  test("UTF-8 encoding", () => {
-    const original = "NS2JB WebKit";
+  check("UTF-8 round trip", () => {
+    const original = "NS2JB WebKit research";
     const encoded = new TextEncoder().encode(original);
-    const decoded = new TextDecoder().decode(encoded);
-
-    return decoded === original;
+    return new TextDecoder().decode(encoded) === original;
   });
 
-  test("Binary data copy", () => {
+  check("Binary copy", () => {
     const original = new Uint8Array([10, 20, 30, 40]);
     const copy = new Uint8Array(original);
-
-    return copy.length === 4 &&
-      copy[2] === 30;
+    return copy[2] === 30 && copy.length === 4;
   });
 
-  test("Promise support", () => {
-    return typeof Promise === "function";
+  check("BigInt conversion", () => {
+    return BigInt("123456789") === 123456789n;
   });
+
+  check("Promise support", () => typeof Promise === "function");
+
+  report.binaryTests = tests;
+
+  const container = document.getElementById("binary-results");
+  container.replaceChildren();
+
+  for (const [name, passed] of Object.entries(tests)) {
+    setResult(container, name, passed);
+  }
+
+  const passed = Object.values(tests).filter(Boolean).length;
+  document.getElementById("binary-count").textContent =
+    `${passed}/${Object.keys(tests).length}`;
 }
 
-function runAllTests() {
-  runBrowserTests();
-  runCompatibilityTests();
-  runProtocolTests();
+let activeSocket = null;
+
+function wsLog(message) {
+  const output = document.getElementById("ws-output");
+  output.textContent += "\n" + message;
 }
 
-document.getElementById("run-tests").addEventListener(
-  "click",
-  runAllTests
-);
+document.getElementById("ws-connect").addEventListener("click", () => {
+  const address = document.getElementById("ws-url").value.trim();
+  const output = document.getElementById("ws-output");
 
-runAllTests();
+  if (!address.startsWith("ws://") &&
+      !address.startsWith("wss://")) {
+    output.textContent = "Enter a valid ws:// or wss:// address.";
+    return;
+  }
+
+  if (activeSocket) activeSocket.close();
+
+  output.textContent = "Connecting...";
+
+  try {
+    activeSocket = new WebSocket(address);
+
+    activeSocket.onopen = () => {
+      report.network.websocket = "connected";
+      wsLog("CONNECTED");
+
+      activeSocket.send(JSON.stringify({
+        type: "diagnostic",
+        message: "Hello from NS2JB WebKit Research"
+      }));
+
+      wsLog("Diagnostic message sent.");
+    };
+
+    activeSocket.onmessage = event => {
+      wsLog("SERVER RESPONSE: " + String(event.data));
+    };
+
+    activeSocket.onerror = () => {
+      report.network.websocket = "error";
+      wsLog("CONNECTION ERROR");
+    };
+
+    activeSocket.onclose = event => {
+      wsLog("CONNECTION CLOSED: " + event.code);
+      activeSocket = null;
+    };
+  } catch (error) {
+    wsLog("ERROR: " + error.message);
+  }
+});
+
+document.getElementById("ws-close").addEventListener("click", () => {
+  if (activeSocket) activeSocket.close();
+});
+
+function exportReport() {
+  const data = JSON.stringify(report, null, 2);
+  const blob = new Blob([data], {type: "application/json"});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = "ns2jb-webkit-report.json";
+  link.click();
+
+  URL.revokeObjectURL(url);
+}
+
+function runAll() {
+  browserTests();
+  apiTests();
+  binaryTests();
+
+  report.generated = new Date().toISOString();
+
+  document.getElementById("last-run").textContent =
+    "Diagnostics completed: " + new Date().toLocaleString();
+}
+
+document.querySelectorAll("nav button").forEach(button => {
+  button.addEventListener("click", () => {
+    document.querySelectorAll("nav button").forEach(b =>
+      b.classList.remove("active")
+    );
+
+    document.querySelectorAll(".page").forEach(page =>
+      page.classList.remove("active")
+    );
+
+    button.classList.add("active");
+    document.getElementById(button.dataset.page)
+      .classList.add("active");
+  });
+});
+
+document.getElementById("run-all").addEventListener("click", runAll);
+document.getElementById("run-binary").addEventListener("click", binaryTests);
+document.getElementById("export-report").addEventListener("click", exportReport);
+
+runAll();
 </script>
 
 </body>
 </html>
-
