@@ -1,0 +1,322 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NS2JB WebKit Research Harness</title>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: system-ui, sans-serif;
+      background: #111318;
+      color: #e8eaf0;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    header {
+      border-bottom: 1px solid #383d49;
+      padding-bottom: 18px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: 26px;
+      margin-bottom: 6px;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin-top: 28px;
+    }
+
+    .subtitle {
+      color: #a3a9b7;
+      font-size: 14px;
+    }
+
+    .panel {
+      background: #1b1f28;
+      border: 1px solid #383d49;
+      border-radius: 10px;
+      padding: 16px;
+      margin: 14px 0;
+    }
+
+    .result {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid #303541;
+      padding: 9px 0;
+      font-size: 14px;
+    }
+
+    .result:last-child {
+      border-bottom: none;
+    }
+
+    .pass {
+      color: #66df9a;
+      font-weight: 700;
+    }
+
+    .fail {
+      color: #ff7777;
+      font-weight: 700;
+    }
+
+    .info {
+      color: #a3a9b7;
+      overflow-wrap: anywhere;
+      font-size: 13px;
+    }
+
+    button {
+      background: #f28b30;
+      color: #171717;
+      border: none;
+      padding: 11px 16px;
+      border-radius: 7px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+
+    button:hover {
+      background: #ffa34f;
+    }
+
+    #status {
+      color: #a3a9b7;
+      font-size: 13px;
+    }
+
+    footer {
+      margin-top: 32px;
+      padding-top: 14px;
+      border-top: 1px solid #383d49;
+      color: #858c9b;
+      font-size: 12px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>NS2JB WebKit Research Harness</h1>
+  <div class="subtitle">
+    Nintendo Switch 2 browser compatibility research
+  </div>
+  <p id="status">Initializing diagnostics...</p>
+</header>
+
+<section class="panel">
+  <h2>Browser information</h2>
+  <div id="browser-results"></div>
+</section>
+
+<section class="panel">
+  <h2>Web API compatibility</h2>
+  <div id="compat-results"></div>
+</section>
+
+<section class="panel">
+  <h2>Binary serialization tests</h2>
+  <div id="protocol-results"></div>
+</section>
+
+<section class="panel">
+  <h2>Manual tests</h2>
+  <p class="info">
+    Run a basic browser-side JavaScript test.
+    This does not access console memory or native system services.
+  </p>
+  <button id="run-tests">Run tests again</button>
+</section>
+
+<footer>
+  NS2JB WebKit Research Harness — browser diagnostics only.
+</footer>
+
+<script>
+"use strict";
+
+function addResult(containerId, name, passed, detail = "") {
+  const container = document.getElementById(containerId);
+  const row = document.createElement("div");
+  row.className = "result";
+
+  const label = document.createElement("span");
+  label.textContent = name;
+
+  const result = document.createElement("span");
+  result.className = passed ? "pass" : "fail";
+  result.textContent = passed ? "AVAILABLE" : "UNAVAILABLE";
+
+  row.append(label, result);
+
+  if (detail) {
+    row.title = detail;
+  }
+
+  container.appendChild(row);
+}
+
+function addInfo(containerId, name, value) {
+  const container = document.getElementById(containerId);
+  const row = document.createElement("div");
+  row.className = "result";
+
+  const label = document.createElement("span");
+  label.textContent = name;
+
+  const valueElement = document.createElement("span");
+  valueElement.className = "info";
+  valueElement.textContent = String(value);
+
+  row.append(label, valueElement);
+  container.appendChild(row);
+}
+
+function runBrowserTests() {
+  const browser = document.getElementById("browser-results");
+  browser.replaceChildren();
+
+  addInfo("browser-results", "User agent", navigator.userAgent);
+  addInfo("browser-results", "Platform", navigator.platform);
+  addInfo("browser-results", "Language", navigator.language);
+  addInfo("browser-results", "Screen", 
+    `${screen.width} × ${screen.height}`);
+  addInfo("browser-results", "Online", navigator.onLine);
+
+  document.getElementById("status").textContent =
+    "Diagnostics completed: " + new Date().toLocaleString();
+}
+
+function runCompatibilityTests() {
+  const container = document.getElementById("compat-results");
+  container.replaceChildren();
+
+  const tests = {
+    "Typed arrays": typeof Uint8Array !== "undefined",
+    "ArrayBuffer": typeof ArrayBuffer !== "undefined",
+    "DataView": typeof DataView !== "undefined",
+    "BigInt": typeof BigInt !== "undefined",
+    "TextEncoder": typeof TextEncoder !== "undefined",
+    "TextDecoder": typeof TextDecoder !== "undefined",
+    "WebAssembly": typeof WebAssembly !== "undefined",
+    "WebSocket": typeof WebSocket !== "undefined",
+    "Fetch API": typeof fetch !== "undefined",
+    "IndexedDB": typeof indexedDB !== "undefined",
+    "Local Storage": typeof localStorage !== "undefined",
+    "Service Workers": "serviceWorker" in navigator,
+    "Cache Storage": typeof caches !== "undefined",
+    "Web Crypto": !!(globalThis.crypto && crypto.subtle),
+    "FontFace API": typeof FontFace !== "undefined",
+    "CSS Font Loading": !!document.fonts
+  };
+
+  for (const [name, available] of Object.entries(tests)) {
+    addResult("compat-results", name, available);
+  }
+}
+
+function runProtocolTests() {
+  const container = document.getElementById("protocol-results");
+  container.replaceChildren();
+
+  function test(name, callback) {
+    try {
+      addResult("protocol-results", name, !!callback());
+    } catch (error) {
+      addResult("protocol-results", name, false, error.message);
+    }
+  }
+
+  test("ArrayBuffer creation", () => {
+    return new ArrayBuffer(16).byteLength === 16;
+  });
+
+  test("Little-endian encoding", () => {
+    const buffer = new ArrayBuffer(4);
+    const view = new DataView(buffer);
+
+    view.setUint32(0, 0x12345678, true);
+
+    return view.getUint32(0, true) === 0x12345678;
+  });
+
+  test("Typed array conversion", () => {
+    const buffer = new ArrayBuffer(4);
+    const view = new DataView(buffer);
+
+    view.setUint32(0, 0x12345678, true);
+
+    const bytes = new Uint8Array(buffer);
+
+    return bytes.length === 4 && bytes[0] === 0x78;
+  });
+
+  test("JSON round trip", () => {
+    const message = {
+      type: "diagnostic",
+      version: 1,
+      message: "hello"
+    };
+
+    const decoded = JSON.parse(JSON.stringify(message));
+
+    return decoded.message === "hello" &&
+      decoded.version === 1;
+  });
+
+  test("UTF-8 encoding", () => {
+    const original = "NS2JB WebKit";
+    const encoded = new TextEncoder().encode(original);
+    const decoded = new TextDecoder().decode(encoded);
+
+    return decoded === original;
+  });
+
+  test("Binary data copy", () => {
+    const original = new Uint8Array([10, 20, 30, 40]);
+    const copy = new Uint8Array(original);
+
+    return copy.length === 4 &&
+      copy[2] === 30;
+  });
+
+  test("Promise support", () => {
+    return typeof Promise === "function";
+  });
+}
+
+function runAllTests() {
+  runBrowserTests();
+  runCompatibilityTests();
+  runProtocolTests();
+}
+
+document.getElementById("run-tests").addEventListener(
+  "click",
+  runAllTests
+);
+
+runAllTests();
+</script>
+
+</body>
+</html>
+

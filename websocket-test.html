@@ -1,0 +1,73 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NS2JB WebSocket Test</title>
+<style>
+body {
+  background: #111318;
+  color: white;
+  font-family: sans-serif;
+  padding: 25px;
+}
+button {
+  padding: 12px;
+  background: #f28b30;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+pre {
+  background: #20242d;
+  padding: 15px;
+  border-radius: 8px;
+  white-space: pre-wrap;
+}
+</style>
+</head>
+<body>
+<h1>WebSocket Diagnostics</h1>
+<p>Tests browser-to-server communication.</p>
+<button id="connect">Connect and test</button>
+<pre id="output">Waiting...</pre>
+
+<script>
+const output = document.getElementById("output");
+
+function log(message) {
+  output.textContent += "\n" + message;
+}
+
+document.getElementById("connect").onclick = () => {
+  output.textContent = "Connecting...\n";
+
+  const socket = new WebSocket(
+    "ws://localhost:8765"
+  );
+
+  socket.onopen = () => {
+    log("CONNECTED");
+    socket.send(JSON.stringify({
+      type: "diagnostic",
+      message: "Hello from browser"
+    }));
+  };
+
+  socket.onmessage = event => {
+    log("SERVER RESPONSE: " + event.data);
+    socket.close();
+  };
+
+  socket.onerror = () => {
+    log("CONNECTION ERROR");
+  };
+
+  socket.onclose = () => {
+    log("CONNECTION CLOSED");
+  };
+};
+</script>
+</body>
+</html>
+
